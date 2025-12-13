@@ -1,5 +1,4 @@
 class ReservationNode:
-    
     def __init__(self, member_name):
         self.member_name = member_name
         self.next = None
@@ -41,8 +40,36 @@ class ReservationList:
         return count
 
 
-class BookNode:
+class LogNode:
     
+    def __init__(self, message):
+        self.message = message
+        self.next = None
+
+
+class ActionStack:
+    
+    def __init__(self):
+        self.top = None
+
+    def push(self, message):
+        new_node = LogNode(message)
+        new_node.next = self.top
+        self.top = new_node
+
+    def show_history(self):
+        print("\n--- Son İşlem Geçmişi (Stack: LIFO) ---")
+        if self.top is None:
+            print("Henüz bir işlem yapılmadı.")
+            return
+        
+        current = self.top
+        while current is not None:
+            print(f"-> {current.message}")
+            current = current.next
+
+
+class BookNode:
     def __init__(self, isbn, title, author):
         self.isbn = isbn
         self.title = title
@@ -105,6 +132,7 @@ class BookBST:
 
 library_tree = BookBST()
 member_set = set()
+history_stack = ActionStack()  
 
 
 def add_book():
@@ -114,6 +142,8 @@ def add_book():
     inserted = library_tree.insert(isbn, title, author)
     if inserted:
         print("Kitap başarıyla eklendi.")
+        
+        history_stack.push(f"KİTAP EKLENDİ: {title} (ISBN: {isbn})")
     else:
         print("Bu ISBN zaten kayıtlı, ekleme yapılmadı.")
 
@@ -125,6 +155,8 @@ def register_member():
         return
     member_set.add(member_name)
     print("Üye başarıyla kaydedildi.")
+    
+    history_stack.push(f"ÜYE KAYDEDİLDİ: {member_name}")
 
 
 def lend_book():
@@ -140,11 +172,15 @@ def lend_book():
     if node.available:
         node.available = False
         print(f"{node.title} kitabı {member_name} adına ödünç verildi.")
+        
+        history_stack.push(f"ÖDÜNÇ VERİLDİ: '{node.title}' -> {member_name}")
     else:
         decision = input("Kitap meşgul. Rezervasyon kuyruğuna eklenmek ister misiniz? (E/H): ")
         if decision.upper() == "E":
             node.reservations.append(member_name)
             print("Üye rezervasyon listesine eklendi.")
+           
+            history_stack.push(f"REZERVASYON: {member_name} -> '{node.title}' kuyruğuna girdi.")
         else:
             print("Rezervasyon yapılmadı.")
 
@@ -158,13 +194,18 @@ def return_book():
     if node.available:
         print("Bu kitap zaten kütüphanede görünüyor.")
         return
+    
+    # İade işlemi
     if node.reservations.is_empty():
         node.available = True
         print("Kitap iade edildi ve tekrar müsait durumda.")
+        history_stack.push(f"İADE ALINDI: '{node.title}' (Rafa kaldırıldı)")
     else:
+        # Rezervasyon varsa sıradakine ver
         next_member = node.reservations.pop_left()
         node.available = False
         print(f"Kitap sıradaki üye {next_member} adına hazırlandı ve ödünç verildi.")
+        history_stack.push(f"İADE & DEVİR: '{node.title}' -> {next_member} (Sıradan aldı)")
 
 
 def list_books():
@@ -172,7 +213,7 @@ def list_books():
     if not ordered_books:
         print("Henüz kitap eklenmedi.")
         return
-    print("\n--- Kayıtlı Kitaplar ---")
+    print("\n--- Kayıtlı Kitaplar (BST Inorder) ---")
     for node in ordered_books:
         status = "Müsait" if node.available else "Ödünçte"
         reservation_count = len(node.reservations)
@@ -199,13 +240,14 @@ def show_menu():
     print("5. Kitapları listele")
     print("6. Üyeleri listele")
     print("7. Çıkış")
+    print("8. İşlem Geçmişini Gör (Stack)") 
     print("==============================")
 
 
 def main():
     while True:
         show_menu()
-        choice = input("Seçiminizi yapın (1-7): ")
+        choice = input("Seçiminizi yapın (1-8): ")
         if choice == "1":
             add_book()
         elif choice == "2":
@@ -221,8 +263,10 @@ def main():
         elif choice == "7":
             print("Programdan çıkılıyor. Hoşça kalın!")
             break
+        elif choice == "8":
+            history_stack.show_history()
         else:
-            print("Geçersiz seçim, lütfen 1-7 arasında bir değer girin.")
+            print("Geçersiz seçim, lütfen 1-8 arasında bir değer girin.")
 
 
 if __name__ == "__main__":
