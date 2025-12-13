@@ -19,6 +19,20 @@ The system is built around custom data structures to ensure efficiency:
 3.  **Member Registry (Python Set)**
     * **Why:** A Python `set` is used to manage member registrations.
     * **Advantage:** This inherently enforces **uniqueness** (a member cannot be registered twice) and provides **O(1)** average time complexity for checking if a member exists in the system.
+4. Action History (Stack)
+   * To track the system's operation logs, a Stack data structure is implemented manually (using a linked-list approach).
+
+   * Purpose: The system records every critical action (e.g., adding a book, registering a member, lending/returning a book).
+
+   * Why Stack?: The LIFO (Last-In, First-Out) principle is ideal for log management. When a user requests to see the history, they are primarily interested in the most recent activities. The Stack ensures the latest transaction is always accessed first at the top.
+
+   * Implementation:
+
+   * LogNode Class: Represents a single log entry containing a message string and a pointer to the next node.
+
+   * ActionStack Class: Manages the nodes.
+
+   * Complexity: The push operation is O(1) (constant time), ensuring that logging does not slow down the main operations.
 
 ## Functional Features
 
